@@ -4,6 +4,13 @@
 
 > ## 스크래피 how to
 
+1. genspider 명령시 자주 사용하는 옵션
+
+   - -t crawl: 재귀적 탐색을 하는 스파이더의 템플릿을 생성해준다.
+     ```bash
+     scrapy genspider -t crawl webtoon comic.naver.com/webtoon/weekday.nhn
+     ```
+
 1. Cache 정책설정
    - settings.py 에서 On/Off
      ```python
