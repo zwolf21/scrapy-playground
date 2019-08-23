@@ -15,6 +15,9 @@ REGX_EPISODE_LIST = re.compile(
 REGX_EPISODE = re.compile(
     r'/webtoon/detail.nhn\?titleId=(?P<titleId>\d+)&no=(?P<no>\d+)&weekday=(?P<weekday>\w+)$'
 )
+REGX_EPISODE_THUMBNAIL = re.compile(
+    r'https://shared-comic.pstatic.net/thumb/webtoon/(?P<titleId>\d+)/(?P<no>\d+)/(?P<filenmae>.+)$'
+)
 
 
 def parse_csv(values, apply=str):
@@ -55,10 +58,17 @@ def extract_link(response, regx, queryfields=None, **kwargs):
     return links
 
 
+def extract_thumbnail_src(response, contains, titleId, no):
+    contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/{no}/"
+    for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
+        return thumb.get()
+
+
 def filter_toon_link(link, title, search=None, weekday=None, titleId=None, **kwargs):
     '''어떠한 웹툰을 필터링 할것인지 정한다.
     '''
     qs = parse_query(link)
+    pat_matched, wk_matched = True, True
     if titleId is not None:
         return qs.get('titleId') in parse_csv(titleId)
     if search is not None:
@@ -96,9 +106,15 @@ class WebtoonSpider(scrapy.Spider):
             # 해당 attr을 지는 테그로 추출범위를 한정한다.
             restrict_xpaths=".//a[@class='title']"
         )
-        # print('self.titleId:', self.titleId)
+
+        def extract_thumbnail_src(response, titleId, **kwargs):
+            contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/thumbnail/"
+            for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
+                return thumb.get()
+
         for url, text, ctx in links:
             ctx['toon_title'] = text
+            ctx['toon_thumbnail_src'] = extract_thumbnail_src(response, **ctx)
             if filter_toon_link(url, text, **self.__dict__):
                 # 필터링 조건을 통과한 웹툰을 대상으로만 재귀적으로 크롤링 한다.
                 yield response.follow(url, self.gen_episode_page_link, meta={'context': ctx})
@@ -125,14 +141,27 @@ class WebtoonSpider(scrapy.Spider):
         context = response.meta['context']
         links = extract_link(
             response, REGX_EPISODE,
-            queryfields=['no'],
+            queryfields=['no', 'titleId'],
             restrict_xpaths=".//a[contains(@onclick, 'lst.title')]"
         )
+
+        def extract_description(response):
+            xpath = "//div[@class='comicinfo']/div[@class='detail']/p/text()"
+            return '\n'.join([desc.get() for desc in response.xpath(xpath)])
+
+        def extract_thumbnail_src(response, titleId, no, **kwargs):
+            contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/{no}/"
+            for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
+                return thumb.get()
+
         for url, text, ctx in links:
             ctx['episode_title'] = text
+            ctx['description'] = extract_description(response)
+            ctx['episode_thumbnail_src'] = extract_thumbnail_src(
+                response, **ctx
+            )
             ctx.update(context)
             if filter_episode_link(url, self.episode):
-                # 에피소드 리스트 필터링
                 yield response.follow(url, self.parse_episode_page, meta={'context': ctx})
 
     def parse_episode_page(self, response):
