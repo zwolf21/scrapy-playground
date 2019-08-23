@@ -11,21 +11,44 @@
      scrapy genspider -t crawl webtoon comic.naver.com/webtoon/weekday.nhn
      ```
 
-1. Cache 정책설정
+1. crawl 명령시 자주 사용하는 옵션
+
+   - -a key=value: 명령행 인자를 스파이더 생성자 변수로 넘겨줄 수 있다
+   - 스파이더의 크롤링을 제어하는데 유용함
+
+     ```bash
+     scrapy crawl webtoon -a search=외모지상*
+     ```
+
+     ```python
+     class WebtoonSpider(scrapy.Spider):
+          name = 'webtoon'
+          start_urls = ['https://comic.naver.com/webtoon/weekday.nhn']
+
+          def __init__(self, search=None, **kwargs):
+               super().__init__(**kwargs)
+               self.search = search
+
+          def parse(self, response):
+               if self.seach in response.url:
+                    pass
+     ```
+
+1) Cache 정책설정
    - settings.py 에서 On/Off
      ```python
      # settings.py
      HTTPCACHE_ENABLED = True
      ```
-1. Post로 요청 하는 방법
+1) Post로 요청 하는 방법
 
    - login form Post 후 해당 로그인 계정의 session 을 유지 한채로 크롤링 하는법?
 
-1. Request Header 에 User-agent 지정 하기
+1) Request Header 에 User-agent 지정 하기
 
    - ex) 특정 사이트의 경우 특정 브라우저 Agent 이외에 접근은 허용 안함
 
-1. Loging : Level 별로 로그 출력 다이렉션 하는 방법
+1) Loging : Level 별로 로그 출력 다이렉션 하는 방법
    - Warning 이상은 txt파일로?
    - Debug 는 화면으로?
 
