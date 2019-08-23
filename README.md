@@ -17,7 +17,7 @@
    - 스파이더의 크롤링을 제어하는데 유용함
 
      ```bash
-     scrapy crawl webtoon -a search=외모지상*
+     scrapy crawl webtoon -a search=외모지상* -a episode=1-100
      ```
 
      ```python
