@@ -64,30 +64,6 @@ def extract_thumbnail_src(response, contains, titleId, no):
         return thumb.get()
 
 
-def filter_toon_link(link, title, search=None, weekday=None, titleId=None, **kwargs):
-    '''어떠한 웹툰을 필터링 할것인지 정한다.
-    '''
-    qs = parse_query(link)
-    pat_matched, wk_matched = True, True
-    if titleId is not None:
-        return qs.get('titleId') in parse_csv(titleId)
-    if search is not None:
-        pat_matched = fnmatch(title, search) or re.search(search, title)
-    if weekday is not None:
-        wk_matched = qs.get('weekday') in parse_csv(weekday)
-    return pat_matched and wk_matched
-
-
-def filter_episode_link(link, episode=None):
-    '''연재 차수를 고른다 episode=1-10; episode=1,2,3,4
-    '''
-    qs = parse_query(link)
-    if episode is not None:
-        episodes = parse_csv(episode)
-        return qs.get('no') in episodes
-    return True
-
-
 class WebtoonSpider(scrapy.Spider):
     name = 'webtoon'
     start_urls = ['https://comic.naver.com/webtoon/weekday.nhn']
@@ -107,6 +83,20 @@ class WebtoonSpider(scrapy.Spider):
             restrict_xpaths=".//a[@class='title']"
         )
 
+        def filter_toon_link(link, title, search=None, weekday=None, titleId=None, **kwargs):
+            '''어떠한 웹툰을 필터링 할것인지 정한다.
+            '''
+            qs = parse_query(link)
+            pat_matched, wk_matched = True, True
+            if titleId is not None:
+                return qs.get('titleId') in parse_csv(titleId)
+            if search is not None:
+                pat_matched = fnmatch(
+                    title, search) or re.search(search, title)
+            if weekday is not None:
+                wk_matched = qs.get('weekday') in parse_csv(weekday)
+            return pat_matched and wk_matched
+
         def extract_thumbnail_src(response, titleId, **kwargs):
             contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/thumbnail/"
             for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
@@ -117,7 +107,12 @@ class WebtoonSpider(scrapy.Spider):
             ctx['toon_thumbnail_src'] = extract_thumbnail_src(response, **ctx)
             if filter_toon_link(url, text, **self.__dict__):
                 # 필터링 조건을 통과한 웹툰을 대상으로만 재귀적으로 크롤링 한다.
-                yield response.follow(url, self.gen_episode_page_link, meta={'context': ctx})
+                yield response.follow(
+                    url, callback=self.gen_episode_page_link,
+                    meta={
+                        'context': ctx
+                    }
+                )
 
     def gen_episode_page_link(self, response):
         def calc_last_page(response):
@@ -135,7 +130,9 @@ class WebtoonSpider(scrapy.Spider):
 
         for page in calc_last_page(response):
             url = f"{response.url}&page={page}"
-            yield response.follow(url, self.parse_episode_list_page, meta=response.meta)
+            yield response.follow(
+                url, callback=self.parse_episode_list_page, meta=response.meta
+            )
 
     def parse_episode_list_page(self, response):
         context = response.meta['context']
@@ -144,6 +141,15 @@ class WebtoonSpider(scrapy.Spider):
             queryfields=['no', 'titleId'],
             restrict_xpaths=".//a[contains(@onclick, 'lst.title')]"
         )
+
+        def filter_episode_link(link, episode=None):
+            '''연재 차수를 고른다 episode=1-10; episode=1,2,3,4
+            '''
+            qs = parse_query(link)
+            if episode is not None:
+                episodes = parse_csv(episode)
+                return qs.get('no') in episodes
+            return True
 
         def extract_description(response):
             xpath = "//div[@class='comicinfo']/div[@class='detail']/p/text()"
@@ -162,7 +168,12 @@ class WebtoonSpider(scrapy.Spider):
             )
             ctx.update(context)
             if filter_episode_link(url, self.episode):
-                yield response.follow(url, self.parse_episode_page, meta={'context': ctx})
+                yield response.follow(
+                    url, callback=self.parse_episode_page,
+                    meta={
+                        'context': ctx
+                    }
+                )
 
     def parse_episode_page(self, response):
         context = response.meta['context']
