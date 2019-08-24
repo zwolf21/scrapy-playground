@@ -145,6 +145,35 @@ class WebtoonSpider(scrapy.Spider):
             restrict_xpaths=".//a[contains(@onclick, 'lst.title')]"
         )
 
+        def extract_episode_list_item(response):
+            '''yield titleId, no, thumbnail, title, rating, published
+            '''
+            xpath_row = "//table[@class='viewList']//tr"
+            for item in response.xpath(xpath_row):
+                item_link = item.xpath(
+                    "./td/a[contains(@href, '/webtoon/detail.nhn')]/@href"
+                )
+                item_thumbnail = item.xpath(
+                    "./td/a/img[contains(@src, 'https://shared-comic.pstatic.net/thumb/webtoon')]/@src"
+                )
+                item_title = item.xpath("./td[@class='title']/a/text()")
+                item_rating = item.xpath(
+                    "./td/div[@class='rating_type']//strong/text()"
+                )
+                item_published = item.xpath("./td[@class='num']/text()")
+
+                item_href = item_link.get()
+                qs = parse_query(item_href)
+                titleId = qs.get('titleId')
+                no = qs.get('no')
+
+                if all((titleId, no)):
+                    thumbnail = item_thumbnail.get()
+                    title = item_title.get()
+                    rating = item_rating.get()
+                    published = item_published.get()
+                    yield titleId, no, thumbnail, title, rating, published
+
         def extract_description(response):
             xpath = "//div[@class='comicinfo']/div[@class='detail']/p/text()"
             return '\n'.join([desc.get() for desc in response.xpath(xpath)])
@@ -153,6 +182,11 @@ class WebtoonSpider(scrapy.Spider):
             contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/{no}/"
             for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
                 return thumb.get()
+
+        episode_description = extract_description(response)
+
+        for titleId, no, thumbnail, title, rating, published in extract_episode_list_item(response):
+            print(titleId)
 
         for url, text, ctx in links:
             ctx['episode_title'] = text
@@ -166,4 +200,4 @@ class WebtoonSpider(scrapy.Spider):
 
     def parse_episode_page(self, response):
         context = response.meta['context']
-        print(context)
+        # print(context)
