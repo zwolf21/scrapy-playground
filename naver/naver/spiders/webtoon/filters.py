@@ -1,8 +1,9 @@
 import re
 from fnmatch import fnmatch
 
+from furl import furl
+
 from .shortcuts import parse_csv
-from naver.utils.urlcuts import parse_query
 
 
 def filter_toon_link(links, search=None, weekday=None, titleId=None, **kwargs):
@@ -11,11 +12,12 @@ def filter_toon_link(links, search=None, weekday=None, titleId=None, **kwargs):
     for link in links:
         url = link.url
         title = link.text
-        qs = parse_query(url)
+        qs = furl(url).args
         pat_matched, wk_matched = True, True
         if titleId is not None:
             if qs.get('titleId') in parse_csv(titleId):
                 yield link
+            continue
         if search is not None:
             pat_matched = fnmatch(title, search) or re.search(search, title)
         if weekday is not None:
@@ -28,9 +30,9 @@ def filter_episode_link(links, episode=None, **kwargs):
     '''연재 차수를 고른다 episode=1-10; episode=1,2,3,4
     '''
     for link in links:
-        qs = parse_query(link.url)
+        qs = furl(link.url).args
         if episode is not None:
-            episodes = parse_csv(episode)
+            episodes = parse_csv(episode, int)
             if qs.get('no') in episodes:
                 yield link
             continue

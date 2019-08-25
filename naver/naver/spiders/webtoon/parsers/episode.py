@@ -1,2 +1,2 @@
 def parse_episode(response):
-    print('parse_episode:', response.url)
+    yield dict(response.qs)
