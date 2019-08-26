@@ -1,7 +1,7 @@
 import furl
 from scrapy.linkextractors import LinkExtractor
 
-from ..items import EpisodeItem
+from ..items import WebToonItem
 
 link_extractor = LinkExtractor(
     r'/webtoon/detail.nhn\?titleId=\d+&no=\d+&weekday=\w+$',
@@ -9,13 +9,18 @@ link_extractor = LinkExtractor(
 )
 
 
+def _extract_title(response):
+    xpath = "//div[@class='comicinfo']/div[@class='detail']/h2/text()"
+    return response.xpath(xpath).get().strip()
+
+
 def _extract_description(response):
     xpath = "//div[@class='comicinfo']/div[@class='detail']/p/text()"
     return '\n'.join([desc.get() for desc in response.xpath(xpath)])
 
 
-def _extract_thumbnail_src(response, titleId, no, **kwargs):
-    contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/{no}/"
+def _extract_thumbnail_src(response, titleId, **kwargs):
+    contain = f"https://shared-comic.pstatic.net/thumb/webtoon/{titleId}/thumbnail/"
     for thumb in response.xpath(f"//img[contains(@src, '{contain}')]/@src"):
         return thumb.get()
 
@@ -39,10 +44,13 @@ def _calc_episode_page_range(response):
 
 
 def parse_webtoon(response):
-    webtoon = response.meta['webtoon']
-    webtoon['description'] = _extract_description(response)
-    webtoon['author'] = _extract_author(response)
-    yield webtoon
+    yield WebToonItem(
+        webtoon_title=_extract_title(response),
+        webtoon_thumb_src=_extract_thumbnail_src(response, **response.qs),
+        description=_extract_description(response),
+        author=_extract_author(response),
+        **response.qs
+    )
 
 
 def follow_episode_list_page(response, *args, **kwargs):

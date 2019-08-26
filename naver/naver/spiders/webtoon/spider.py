@@ -2,7 +2,7 @@
 import scrapy
 
 from .parsers.kwargs import parse_number_range_exp
-from .parsers.webtoon_list import parse_webtoon_list
+from .parsers.webtoon_list import follow_webtoon
 from .parsers.webtoon import parse_webtoon, follow_episode_list_page
 from .parsers.episode_list import parse_episode_list, follow_episode
 from .parsers.episode import parse_episode
@@ -20,19 +20,18 @@ class WebtoonSpider(scrapy.Spider):
         self.search = search
 
     def parse(self,  response):
-        print('*'*200)
-        for link, meta in parse_webtoon_list(response):
-            yield response.follow(link, self.parse_webtoon, meta=meta)
-
-    def parse_webtoon(self, response):
-        # for webtoon in parse_webtoon(response):
-        #     yield webtoon
-        for flw in follow_episode_list_page(response, self.parse_episode_list):
+        for flw in follow_webtoon(response, self.parse_webtoon, **self.__dict__):
             yield flw
 
-    def parse_episode_list(self, response):
-        # for episode in parse_episode_list(response):
-        #     yield episode
+    def parse_webtoon(self, response):
+        for webtoon in parse_webtoon(response):
+            yield webtoon
+        for flw in follow_episode_list_page(response, self.parse_episode_list_page):
+            yield flw
+
+    def parse_episode_list_page(self, response):
+        for episode in parse_episode_list(response):
+            yield episode
         for flw in follow_episode(response, self.parse_episode):
             yield flw
 
