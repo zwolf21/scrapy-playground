@@ -1,57 +1,41 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider, Rule
 
+from .parsers.kwargs import parse_number_range_exp
 from .parsers.webtoon_list import parse_webtoon_list
-from .parsers.webtoon import parse_webtoon
-from .parsers.episode_list import parse_episode_list
+from .parsers.webtoon import parse_webtoon, follow_episode_list_page
+from .parsers.episode_list import parse_episode_list, follow_episode
 from .parsers.episode import parse_episode
-from .filters import filter_toon_link, filter_episode_link
 
 
-class WebtoonSpider(CrawlSpider):
+class WebtoonSpider(scrapy.Spider):
     name = 'webtoon'
     start_urls = ['https://comic.naver.com/webtoon/weekday.nhn']
 
-    rules = [
-        Rule(
-            LinkExtractor(r'https://comic.naver.com/webtoon/weekday.nhn$'),
-            callback=parse_webtoon_list, follow=True
-        ),
-        Rule(
-            LinkExtractor(
-                r'/webtoon/list.nhn\?titleId=\d+&weekday=\w+$',
-                restrict_xpaths=(".//a[@class='title']")
-            ),
-            callback=parse_webtoon, follow=True,
-            process_links='process_episode_list_link'
-        ),
-        Rule(
-            LinkExtractor(
-                r'/webtoon/list.nhn\?titleId=\d+&weekday=\w+&page=\d+$',
-            ),
-            callback=parse_episode_list, follow=True
-        ),
-        Rule(
-            LinkExtractor(
-                r'/webtoon/detail.nhn\?titleId=\d+&no=\d+&weekday=\w+$'
-            ),
-            callback=parse_episode,
-            process_links='procecss_episode_link',
-            follow=True,
-        ),
-    ]
-
-    def __init__(self, search=None, weekday=None, titleId=None, episode=None, **kwargs):
+    def __init__(self, titleId=None, weekday=None, no=None, search=None, **kwargs):
         super().__init__(**kwargs)
-        self.weekday = weekday
-        self.search = search
         self.titleId = titleId
-        self.episode = episode
+        self.weekday = weekday
+        self.no = parse_number_range_exp(no)
+        self.search = search
 
-    def process_episode_list_link(self, links):
-        return filter_toon_link(links, **self.__dict__)
+    def parse(self,  response):
+        print('*'*200)
+        for link, meta in parse_webtoon_list(response):
+            yield response.follow(link, self.parse_webtoon, meta=meta)
 
-    def procecss_episode_link(self, links):
-        return filter_episode_link(links, **self.__dict__)
+    def parse_webtoon(self, response):
+        # for webtoon in parse_webtoon(response):
+        #     yield webtoon
+        for flw in follow_episode_list_page(response, self.parse_episode_list):
+            yield flw
+
+    def parse_episode_list(self, response):
+        # for episode in parse_episode_list(response):
+        #     yield episode
+        for flw in follow_episode(response, self.parse_episode):
+            yield flw
+
+    def parse_episode(self, response):
+        for cut in parse_episode(response):
+            yield cut
