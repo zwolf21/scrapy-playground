@@ -1,28 +1,18 @@
-# -*- coding: utf-8 -*-
-
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://doc.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
 
 class EmartItem(scrapy.Item):
-    ctg_large = scrapy.Field()
-    ctg_medium = scrapy.Field()
-    ctg_small = scrapy.Field()
+    ctg_lg = scrapy.Field()
+    ctg_md = scrapy.Field()
+    ctg_sm = scrapy.Field()
+    ctg_xm = scrapy.Field()
+    brand_name = scrapy.Field()
+    item_code = scrapy.Field()
+    item_name = scrapy.Field()
     img_src = scrapy.Field()
-    link = scrapy.Field()
-    itemId = scrapy.Field()
-    itemName = scrapy.Field()
-    pkgPrice = scrapy.Field()
-    pkgAmount = scrapy.Field()
-    amountUnit = scrapy.Field()
-    currencyUnit = scrapy.Field()
-    commentCount = scrapy.Field()
-    femaleRatio = scrapy.Field()
-    maleRatio = scrapy.Field()
+    comment_count = scrapy.Field()
+    female_count = scrapy.Field()
+    male_count = scrapy.Field()
     age10 = scrapy.Field()
     age20 = scrapy.Field()
     age30 = scrapy.Field()

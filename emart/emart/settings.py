@@ -27,7 +27,7 @@ CONCURRENT_REQUESTS = 1
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1.2
+DOWNLOAD_DELAY = 1.1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -89,12 +89,14 @@ HTTPCACHE_DIR = 'httpcache'
 HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 403, 404, 500, 502, 503]
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+
 FEED_EXPORT_FIELDS = [
-    'itemId', 'ctg_large', 'ctg_medium', 'ctg_small', 'itemName',
-    'pkgPrice', 'currencyUnit', 'pkgAmount', 'amountUnit', 'link', 'img_src',
-    'commentCount', 'femaleRatio', 'maleRatio',
-    'age10', 'age20', 'age30', 'age40', 'age50', 'tags',
+    "ctg_lg", "ctg_md", "ctg_sm", "ctg_xm",
+    "brand_name", "item_name", "img_src",
+    "comment_count", "female_count", "male_count",
+    "age10", "age20", "age30", "age40", "age50",
+    "tags",
 ]
 
-LOG_FILE = 'emart_log.txt'
 LOG_LEVEL = 'INFO'
+LOG_FILE = 'emart.log'
