@@ -92,7 +92,7 @@ HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 403, 404, 500, 502, 503]
 FEED_EXPORT_FIELDS = [
     'itemId', 'ctg_large', 'ctg_medium', 'ctg_small', 'itemName',
     'pkgPrice', 'currencyUnit', 'pkgAmount', 'amountUnit', 'link', 'img_src',
-    'commentCount', 'femailRation', 'mailRatio',
+    'commentCount', 'femaleRatio', 'maleRatio',
     'age10', 'age20', 'age30', 'age40', 'age50', 'tags',
 ]
 

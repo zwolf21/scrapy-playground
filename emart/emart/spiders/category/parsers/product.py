@@ -83,7 +83,7 @@ def parse_product(response):
     ctx = response.meta['context']
 
     amountUnit, _, pkgAmount = _parse_perPriceInfo(response)
-    ratio_femail, ratio_mail = _parse_sex_pct(response)
+    ratio_female, ratio_male = _parse_sex_pct(response)
     age_pct = _parse_age_pct(response)
     context = dict(
         itemId=response.qs['itemId'],
@@ -95,8 +95,8 @@ def parse_product(response):
         amountUnit=amountUnit,
         pkgAmount=pkgAmount,
         commentCount=_parse_commentCount(response),
-        femailRatio=ratio_femail,
-        mailRatio=ratio_mail,
+        femaleRatio=ratio_female,
+        maleRatio=ratio_male,
         **age_pct
     )
     context.update(ctx)
