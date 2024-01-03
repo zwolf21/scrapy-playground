@@ -91,12 +91,13 @@ HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 403, 404, 500, 502, 503]
 
 
 FEED_EXPORT_FIELDS = [
-    "ctg_lg", "ctg_md", "ctg_sm", "ctg_xm",
+    "item_code", "ctg_lg", "ctg_md", "ctg_sm", "ctg_xm",
     "brand_name", "item_name", "img_src",
     "comment_count", "female_count", "male_count",
     "age10", "age20", "age30", "age40", "age50",
     "tags",
 ]
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = 'emart.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = 'emart.log'
+# LOG_ENABLED = True

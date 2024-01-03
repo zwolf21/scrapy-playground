@@ -3,6 +3,8 @@
 /[Ll]ib/
 /[Tt]cl/
 /[Ii]nclude/
+/venv 
+
 __pycache__/
 .vscode/
 man/
