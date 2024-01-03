@@ -4,7 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from bs4 import BeautifulSoup
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -26,6 +26,8 @@ class MyreplicaSpiderMiddleware:
         # middleware and into the spider.
 
         # Should return None or raise an exception.
+        soup = BeautifulSoup(response.body, 'html.parser')
+        setattr(response, 'soup', soup)
         return None
 
     def process_spider_output(self, response, result, spider):
