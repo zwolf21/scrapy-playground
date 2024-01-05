@@ -12,6 +12,7 @@ BOT_NAME = "myreplica"
 SPIDER_MODULES = ["myreplica.spiders"]
 NEWSPIDER_MODULE = "myreplica.spiders"
 
+HTTPERROR_ALLOWED_CODES = [301]
 # LOG_LEVEL = 'ERROR'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -29,7 +30,7 @@ ROBOTSTXT_OBEY = False
 #DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
-#CONCURRENT_REQUESTS_PER_IP = 16
+CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False

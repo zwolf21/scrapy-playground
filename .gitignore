@@ -23,5 +23,6 @@ im/
 *.xls*
 *.csv
 *.json
+*.jsonl
 .scrapy/
 log.txt
